@@ -1,51 +1,45 @@
-import * as React from "react";
-import { View, Text, Button } from "react-native";
+import { DetailsScreen } from "@/screens/DetailsScreen";
+import { HomeScreen } from "@/screens/HomeScreen";
 import { NavigationContainer } from "@react-navigation/native";
 import {
-  createNativeStackNavigator,
   NativeStackNavigationProp,
+  createNativeStackNavigator,
 } from "@react-navigation/native-stack";
+import * as React from "react";
 
-type TStackNavigatorParams = { Home: undefined; Details: { itemId: number } };
+type TStackNavigatorParamsGeneral = {
+  [key: string]: { [key: string]: string | number } | undefined;
+};
+type createStackNavigatorParams<T extends TStackNavigatorParamsGeneral> = T;
+type TScreenNavigationProps<
+  T0 extends TStackNavigatorParamsGeneral,
+  T1 extends keyof T0
+> = NativeStackNavigationProp<T0, T1>;
 
-type TScreenNavigationProps<T extends keyof TStackNavigatorParams> =
-  NativeStackNavigationProp<TStackNavigatorParams, T>;
-type TScreenRouteProps<T extends keyof TStackNavigatorParams> = {
-  params: TStackNavigatorParams[T];
+type TScreenRouteProps<
+  T0 extends TStackNavigatorParamsGeneral,
+  T1 extends keyof T0
+> = { params: T0[T1] };
+
+export type TScreenProps<
+  T0 extends TStackNavigatorParamsGeneral,
+  T1 extends keyof T0
+> = T0[T1] extends undefined
+  ? { navigation: TScreenNavigationProps<T0, T1> }
+  : {
+      navigation: TScreenNavigationProps<T0, T1>;
+      route: TScreenRouteProps<T0, T1>;
+    };
+
+type TCreateScreenPropsMap<T extends TStackNavigatorParamsGeneral> = {
+  [k in keyof T]: TScreenProps<T, k>;
 };
 
-type TScreenProps<T extends keyof TStackNavigatorParams> =
-  TStackNavigatorParams[T] extends undefined
-    ? { navigation: TScreenNavigationProps<T> }
-    : { navigation: TScreenNavigationProps<T>; route: TScreenRouteProps<T> };
-
-type THomeScreenProps = TScreenProps<"Home">;
-function HomeScreen({ navigation }: THomeScreenProps) {
-  return (
-    <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-      <Text>Home Screen</Text>
-      <Button
-        title="Go to Details"
-        onPress={() => navigation.navigate("Details", { itemId: 10 })}
-      />
-    </View>
-  );
-}
-
-type TDetailsScreenProps = {
-  navigation: TScreenNavigationProps<"Details">;
-  route: TScreenRouteProps<"Details">;
-};
-function DetailsScreen({ navigation, route }: TDetailsScreenProps) {
-  const { itemId } = route.params;
-
-  return (
-    <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-      <Text>Details Screen, itemId: {itemId}</Text>
-      <Button title="Go to Home" onPress={() => navigation.navigate("Home")} />
-    </View>
-  );
-}
+type TStackNavigatorParams = createStackNavigatorParams<{
+  Home: undefined;
+  Details: { itemId: number };
+}>;
+export type TScreenPropsMap = TCreateScreenPropsMap<TStackNavigatorParams>;
 
 const Stack = createNativeStackNavigator<TStackNavigatorParams>();
 
